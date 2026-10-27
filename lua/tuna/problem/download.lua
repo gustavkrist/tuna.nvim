@@ -470,6 +470,15 @@ end
 ---@param cfg table resolved configuration for the target directory
 ---@return string? template the template file the source was written from
 local function store_downloaded_task(filepath, task, cfg)
+    local file_extension = vim.fn.fnamemodify(filepath, ":e")
+    if cfg.init_command[file_extension] then
+        local cmd = utils.eval_command(filepath, cfg.init_command[file_extension])
+        if cmd then
+            local argv = vim.list_extend({ cmd.exec }, cmd.args)
+            utils.ensure_directory(vim.fn.fnamemodify(filepath, ":h"))
+            vim.system(argv, { cwd = vim.fn.fnamemodify(filepath, ":h") }):wait()
+        end
+    end
     local scaffold = require("tuna.workspace.scaffold")
     local ext = vim.fn.fnamemodify(filepath, ":e")
     local template = scaffold.template("solution", ext, cfg, filepath, task)
